@@ -12,6 +12,17 @@
 % written by Ethan Marcello
 % last updated 31OCT19
 
+%% Setup and run simulation
+%Note: This script is located in the "Working" folder, and accesses the
+% simulation parameters from the folder "Capstone_Simulation\Model_configuration_files". 
+% If location of parameter files is different, must change the load command 
+% to reflect the correct path to these files.
+
+load('..\Model_configuration_files\IC.mat'); % load the initial conditions for the quadcopter
+load('..\Model_configuration_files\crazyflie(1)Model_X.mat'); % load the quadcopter model
+load('..\Model_configuration_files\humm_traj_path_slow10x.mat'); % load the trajectory to fly
+sim('PC_Quadcopter_Simulation.slx', 45) % Runs simulation for 45 seconds
+
 %% Important display parameters:
 ss = 3; %data display step size (larger number will display less data points)
 
@@ -39,6 +50,11 @@ while(tout(index) < 15)
     index = index+1;
 end
 endi = index; %variable used to indicate end of the trajectory flight
+
+%loops through data until the X_cmd (a position cmd determined by input
+%trajectory, and therefore will not change at that timestep regardless of
+%the actual position of the quadcopter) is the same as the command 2
+%iterations forward.
 while(yout(endi,25) ~= yout((endi+2),25))
     endi = endi+1;
     if(endi>=size(tout))
@@ -81,4 +97,9 @@ err_2D = sqrt(xerr.^2+zerr.^2); %2D distance errors over the entire path
 avgerr_2D = mean(err_2D);
 stderr_2D = std(err_2D); %std deviation of errors
 maxerr_2D = max(err_2D);
+
+figure(2);
+hold on
+plot(err_2D);
+title('2D error of flight path');
 
