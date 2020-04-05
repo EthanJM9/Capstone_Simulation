@@ -112,11 +112,11 @@ clear X Y Z t Psi sp_red raw_t hummTraj
 clear path
 load ('Working/hummTraj.mat');
 
-sp_red = 5; %the speed reduction factor. Multiplied by the original trajectory time
+sp_red = 20; %the speed reduction factor. Multiplied by the original trajectory time
 
 X = hummTraj(:,2)'; %double the start point so quad has time to settle before diving.
 Y = zeros(1,length(X)); % meters
-Z = hummTraj(:,3)' + 1; %Original trajectory hits origin and don't want quad to hit ground so added 1.
+Z = [hummTraj(:,3)'] + 1; %Original trajectory hits origin and don't want quad to hit ground so added 1.
 raw_t = hummTraj(:,1)';
 t = ((raw_t-raw_t(1)).*sp_red); % seconds
 Psi = zeros(1,length(X)); % radians

@@ -2,15 +2,21 @@
 % 
 %  Takes in 2D trajectory data (in the X and Z coordinate frame) from the
 %  simout variable 'yout' for the PC_Quadcopter_Simulation.slx and compares
-%  it to the commanded trajectory positions. MUST RUN SIM BEFORE USING THIS
-%  SCRIPT.
+%  it to the commanded trajectory positions. 
+%
+%  -----------------USE THIS SCRIPT TO RUN THE SIMULATION------------------
+%  
+%  See "Setup and run simulation" section below and edit the
+%  necessary parameters/load files to run the path you want. Remember to
+%  edit both the IC (uncomment the line you want) and the trajectory path 
+%  filename.
 %
 %  TODO: -Completes error checking and determines if trajectory was satisfactory.
 %        -Incoroprates time sensitive calculations
 %        -??
 %  
 % written by Ethan Marcello
-% last updated 31OCT19
+% last updated 05APR2020
 
 %% Setup and run simulation
 %Note: This script is located in the "Working" folder, and accesses the
@@ -19,10 +25,28 @@
 % to reflect the correct path to these files.
 clear; % clean up workspace
 
-load('..\Model_configuration_files\IC.mat'); % load the initial conditions for the quadcopter
+% MUST UNCOMMENT CORRECT IC FOR THE PATH FLYING
+% load('..\Model_configuration_files\IC.mat'); % load the initial conditions for the quadcopter
+ load('..\Model_configuration_files\IChumm.mat'); % load the initial conditions for a starting-from-flight simulation.
+
 load('..\Model_configuration_files\crazyflie(1)Model_X.mat'); % load the quadcopter model
-load('..\Model_configuration_files\humm_traj_path_slow10x.mat'); % load the trajectory to fly
-sim('PC_Quadcopter_Simulation.slx', 45) % Runs simulation for 45 seconds
+
+% MUST EDIT THIS FOR EVERY RUN WHEN CHANGING THE TRAJECTORY PATH!!!
+trajectory_path = '..\Model_configuration_files\IChumm_humm_traj_path_slow5x.mat';
+load(trajectory_path); % load the trajectory to fly, variable in ws is a timeseries "path"
+
+% Adjusting IC velocity based on speed of trajectory that is req'd.
+if (extractBetween(trajectory_path,'files\','_humm_') == "IChumm")
+    path_speed_str = extractBetween(trajectory_path, 'slow', 'x.mat'); % extracting path speed from trajectory file name
+    path_speed = str2double(path_speed_str); % converting the path speed to an integer.
+    IC.U = IC.U/path_speed; % adjusting initial velocities as appropriate for path speed
+    IC.W = IC.W/path_speed;
+    sim_time = 20; % shortening sim time length
+else
+    sim_time = 45;
+end
+
+sim('PC_Quadcopter_Simulation.slx', sim_time) % Runs simulation for sim_time seconds
 
 %% Important display parameters:
 ss = 3; %data display step size (larger number will display less data points)
@@ -48,10 +72,14 @@ ax = axes;
 ax.FontSize=12;
 %ax.XTick = -10:2:7;
 index = 1; %variable used to indicate start of humm traj flight
-while(tout(index) < 15)
-    index = index+1;
+
+% if starting from the ground, then time is required to get into position
+if IC.U == 0
+    while(tout(index) < 15) % increment until quadcopter is at beginning of maneuver to start pulling trajectory data.
+        index = index+1;
+    end
 end
-endi = index; %variable used to indicate end of the trajectory flight
+endi = index; %variable used to indicate end of the trajectory flight. To be determined below.
 
 %loops through data until the X_cmd (a position cmd determined by input
 %trajectory, and therefore will not change at that timestep regardless of
@@ -67,6 +95,9 @@ end
 
 hold on;
 plot(X(index:ss:endi),Z(index:ss:endi),'bo','LineWidth',1.5); %state data X,Z
+if index == 1
+    index = index + 1; % adjusting to remove indexing errors.
+end
 plot(X_cmd((index-1):ss:(endi-1)),Z_cmd((index-1):ss:(endi-1)),'r+','LineWidth',1.5); %commands data X,Z
 %plot(hummTraj(:,2),hummTraj(:,3)+1,'c*','LineWidth',1.5); %actual hummingbird data (adds one to the Z coordinate to match sim height)
 ax.DataAspectRatio = [1 1 1]; %equalizes scale on xy axis
@@ -108,7 +139,7 @@ traj_time = traj_time - traj_time(1); % subtract the start time so time starts f
 
 fig2 = figure(2);
 clf;
-ax2 = axes(fig2,'DataAspectRatio',[1 1 1]); % equalizes on the xy axis
+% ax2 = axes(fig2,'DataAspectRatio',[1 1 1]); % equalizes on the xy axis
 hold on;
 plot(traj_time, xerr);
 plot(traj_time, zerr);
