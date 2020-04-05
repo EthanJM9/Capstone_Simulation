@@ -17,6 +17,7 @@
 % simulation parameters from the folder "Capstone_Simulation\Model_configuration_files". 
 % If location of parameter files is different, must change the load command 
 % to reflect the correct path to these files.
+clear; % clean up workspace
 
 load('..\Model_configuration_files\IC.mat'); % load the initial conditions for the quadcopter
 load('..\Model_configuration_files\crazyflie(1)Model_X.mat'); % load the quadcopter model
@@ -28,6 +29,7 @@ ss = 3; %data display step size (larger number will display less data points)
 
 %% 2D Trajectory import and data manipulation (time independent)
 
+%tout = tout; % Don't forget time is in the tout variable produced by the sim.
 theta = yout(:,5); %pitch information
 Thrust = (yout(:,13)+yout(:,14)+yout(:,15)+yout(:,16))/9000; %Value proportional to thrust. Not actual thrust.
 X = yout(:,10);
@@ -98,8 +100,22 @@ avgerr_2D = mean(err_2D);
 stderr_2D = std(err_2D); %std deviation of errors
 maxerr_2D = max(err_2D);
 
-figure(2);
-hold on
-plot(err_2D);
-title('2D error of flight path');
+
+%% Plot Error Graph(s)
+
+traj_time = tout(index:endi); %makes a variable of same size as error vectors for plotting.
+traj_time = traj_time - traj_time(1); % subtract the start time so time starts from zero.
+
+fig2 = figure(2);
+clf;
+ax2 = axes(fig2,'DataAspectRatio',[1 1 1]); % equalizes on the xy axis
+hold on;
+plot(traj_time, xerr);
+plot(traj_time, zerr);
+plot(traj_time, err_2D);
+title('Position Errors at' + extractAfter(path.name,'ory'), 'FontSize', 20);
+legend('Error in X', 'Error in Z', 'Total 2D Distance Error','FontSize',12);
+tl = xlabel('Time (s)','FontSize',16);
+zl = ylabel('Error (m)','FontSize',16);
+grid on;
 

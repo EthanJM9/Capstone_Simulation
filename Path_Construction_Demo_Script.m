@@ -88,7 +88,7 @@ clear X Y Z t Psi
 
 %clear path
 
-%% Hummingbird Trajectory Creation
+%% Hummingbird Trajectory Creation (assumes quadcopter must start from the ground)
 clear path
 load hummTraj;
 
@@ -106,6 +106,26 @@ path.z = timeseries(Z,t);
 path.psi = timeseries(Psi,t);
 path.name = 'Hummingbird Trajectory ' + string(sp_red) + 'x Speed Reduction';
 uisave('path','Model configuration files/humm_traj_path_slow' + string(sp_red) + 'x');
+clear X Y Z t Psi sp_red raw_t hummTraj
+
+%% Hummingbird Trajectory Creation (with IC at start of path)
+clear path
+load ('Working/hummTraj.mat');
+
+sp_red = 5; %the speed reduction factor. Multiplied by the original trajectory time
+
+X = hummTraj(:,2)'; %double the start point so quad has time to settle before diving.
+Y = zeros(1,length(X)); % meters
+Z = hummTraj(:,3)' + 1; %Original trajectory hits origin and don't want quad to hit ground so added 1.
+raw_t = hummTraj(:,1)';
+t = ((raw_t-raw_t(1)).*sp_red); % seconds
+Psi = zeros(1,length(X)); % radians
+path.x = timeseries(X,t);
+path.y = timeseries(Y,t);
+path.z = timeseries(Z,t);
+path.psi = timeseries(Psi,t);
+path.name = 'Hummingbird Trajectory ' + string(sp_red) + 'x Speed Reduction';
+uisave('path','Model_configuration_files/IChumm_humm_traj_path_slow' + string(sp_red) + 'x');
 clear X Y Z t Psi sp_red raw_t hummTraj
 
 
