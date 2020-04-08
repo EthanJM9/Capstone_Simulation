@@ -11,23 +11,24 @@
 %  edit both the IC (uncomment the line you want) and the trajectory path 
 %  filename.
 %
-%  TODO: -Completes error checking and determines if trajectory was satisfactory.
-%        -Incoroprates time sensitive calculations
+%  TODO: -Determines if trajectory was satisfactory.
+%        -Incoroprates time sensitive calculations (already does)
 %        -??
 %  
 % written by Ethan Marcello
 % last updated 05APR2020
 
-%% Setup and run simulation
+%% Setup simulation
 %Note: This script is located in the "Working" folder, and accesses the
 % simulation parameters from the folder "Capstone_Simulation\Model_configuration_files". 
 % If location of parameter files is different, must change the load command 
 % to reflect the correct path to these files.
-clear; % clean up workspace
+
+%clear; % clean up workspace
 
 % MUST UNCOMMENT CORRECT IC FOR THE PATH FLYING
 % load('..\Model_configuration_files\IC.mat'); % load the initial conditions for the quadcopter
-load('..\Model_configuration_files\IChumm.mat'); % load the initial conditions for a starting-from-flight simulation.
+  load('..\Model_configuration_files\IChumm.mat'); % load the initial conditions for a starting-from-flight simulation.
 
 load('..\Model_configuration_files\crazyflie(1)Model_X.mat'); % load the quadcopter model
 
@@ -40,11 +41,29 @@ if (extractBetween(trajectory_path,'files\','_humm_') == "IChumm")
     path_speed_str = extractBetween(trajectory_path, 'slow', 'x.mat'); % extracting path speed from trajectory file name
     path_speed = str2double(path_speed_str); % converting the path speed to an integer.
     IC.U = IC.U/path_speed; % adjusting initial velocities as appropriate for path speed
-    IC.W = IC.W/path_speed;
+    IC.W = IC.W/path_speed; 
     sim_time = 20; % shortening sim time length
 else
     sim_time = 45;
 end
+
+%% Control Parameters
+
+% These parameters effect X position control
+
+att_lim = 45; % in degrees here, multiplied by pi/180 for conversion to radians in sim
+
+% These parameters effect theta control
+Kp_theta = 2; % original value 2
+Ki_theta = 1.1; % original value 1.1
+Kd_theta = 1.2; % original value 1.2
+%These paramaters effect altitude control (Z)
+Kp_alt = 2; % original value 2
+Ki_alt = 1.1; % original value 1.1
+Kd_alt = 3.3; % original value 3.3
+
+
+%% Run Simulation
 
 sim('PC_Quadcopter_Simulation.slx', sim_time) % Runs simulation for sim_time seconds
 
@@ -96,7 +115,8 @@ end
 hold on;
 plot(X(index:ss:endi),Z(index:ss:endi),'bo','LineWidth',1.5); %state data X,Z
 if index == 1
-    index
+    index = index + 1; % adjusting to remove indexing errors.
+end
 plot(X_cmd((index-1):ss:(endi-1)),Z_cmd((index-1):ss:(endi-1)),'r+','LineWidth',1.5); %commands data X,Z
 %plot(hummTraj(:,2),hummTraj(:,3)+1,'c*','LineWidth',1.5); %actual hummingbird data (adds one to the Z coordinate to match sim height)
 ax.DataAspectRatio = [1 1 1]; %equalizes scale on xy axis
@@ -129,7 +149,9 @@ err_2D = sqrt(xerr.^2+zerr.^2); %2D distance errors over the entire path
 avgerr_2D = mean(err_2D);
 stderr_2D = std(err_2D); %std deviation of errors
 maxerr_2D = max(err_2D);
-
+% Set up data structure for saving
+data = [xerr; zerr; err_2D];
+%save("Error_Figures/ErrorData_"+extractAfter(trajectory_path,"slow"), "data", "avgerr_2D", "stderr_2D", "maxerr_2D");
 
 %% Plot Error Graph(s)
 
@@ -138,11 +160,11 @@ traj_time = traj_time - traj_time(1); % subtract the start time so time starts f
 
 fig2 = figure(2);
 clf;
-ax2 = axes(fig2,'DataAspectRatio',[1 1 1]); % equalizes on the xy axis
+% ax2 = axes(fig2,'DataAspectRatio',[1 1 1]); % equalizes on the xy axis
 hold on;
-plot(traj_time, xerr);
-plot(traj_time, zerr);
-plot(traj_time, err_2D);
+plot(traj_time, xerr, 'LineWidth', 1.5);
+plot(traj_time, zerr, 'LineWidth', 1.5);
+plot(traj_time, err_2D, 'LineWidth', 1.5);
 title('Position Errors at' + extractAfter(path.name,'ory'), 'FontSize', 20);
 legend('Error in X', 'Error in Z', 'Total 2D Distance Error','FontSize',12);
 tl = xlabel('Time (s)','FontSize',16);
