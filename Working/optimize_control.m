@@ -31,7 +31,9 @@ att_lim = 45;
 
 %% Prepare Optimization
 % define initial gains vector
-gains0 = [0.32, 0.1, 2.0, 1.1, 1.2, 2.0, 1.1, 3.3]; 
+gains0 = [0.32, 0.1, 2.0, 1.1, 1.2, 2.0, 1.1, 3.3];
+lb = zeros(1,8);
+ub = ones(1,8).*35; %upper bound at gains of 35
 %Kp_x
 %Kd_x
 %Kp_theta
@@ -44,11 +46,11 @@ gains0 = [0.32, 0.1, 2.0, 1.1, 1.2, 2.0, 1.1, 3.3];
 %%
 % setting optimization parameters
 options = optimoptions(@fmincon,...
-    'Display','iter','Algorithm','interior-point');
+    'Display','iter','Algorithm','sqp');
 
 % reports gains (vector containing control gains), and the value returned by function
 [gains,fval] = fmincon(@obj_func,gains0,...  % objective function input, and initial point
-    [],[],[],[],[],[],@constraints,options)  % constraints function
+              [],[],[],[],lb,ub,[],options)  % lb is lower bound for gain vars.
                                           % options is the optimization parameter structure
 
 % After running,  the output display table will show details related to the
