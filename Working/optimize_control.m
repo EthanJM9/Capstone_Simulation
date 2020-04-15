@@ -6,7 +6,6 @@
 % If location of parameter files is different, must change the load command 
 % to reflect the correct path to these files.
 
-
 load('..\Model_configuration_files\IChumm.mat'); % load the initial conditions for a starting-from-flight simulation.
 
 load('..\Model_configuration_files\crazyflie(1)Model_X.mat'); % load the quadcopter model
@@ -31,18 +30,10 @@ att_lim = 45;
 
 %% Prepare Optimization
 % define initial gains vector
-gains0 = [0.32, 0.1, 2.0, 1.1, 1.2, 2.0, 1.1, 3.3];
+gains0 = [0.32, 0.1, 2.0, 1.1, 1.2, 2.0, 1.1, 3.3]; %Kp_x, Kd_x, Kp_theta, Ki_theta, Kd_theta, Kp_alt, Ki_alt, Kd_alt
 lb = zeros(1,8);
 ub = ones(1,8).*35; %upper bound at gains of 35
-%Kp_x
-%Kd_x
-%Kp_theta
-%Ki_theta
-%Kd_theta
-%Kp_alt
-%Ki_alt
-%Kd_alt
-               
+     
 %%
 % setting optimization parameters
 options = optimoptions(@fmincon,...
