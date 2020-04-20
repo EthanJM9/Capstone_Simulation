@@ -61,9 +61,10 @@ function f = obj_func(gains)
     end
 
     % Error Calculations
-    index = index+1; % eliminate index error
-    xerr = X(index:endi)-X_cmd((index-1):(endi-1)); %errors in X over entire path
-    zerr = Z(index:endi)-Z_cmd((index-1):(endi-1)); %errors in Z over entire path
+    % X should be the same as X_cmd at the same index in a perfect control
+    % scenario.
+    xerr = X(index:endi)-X_cmd((index):(endi)); %errors in X over entire path
+    zerr = Z(index:endi)-Z_cmd((index):(endi)); %errors in Z over entire path
     err_2D = sqrt(xerr.^2+zerr.^2); %2D distance errors over the entire path
     avgerr_2D = mean(err_2D);
     stderr_2D = std(err_2D); %std deviation of errors

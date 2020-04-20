@@ -115,11 +115,10 @@ while(yout(endi,25) ~= yout((endi+2),25))
 end
 
 hold on;
+% The commanded position at each timestep should be identical to the actual
+% position in a perfect-control scenario.
 plot(X(index:ss:endi),Z(index:ss:endi),'bo','LineWidth',1.5); %state data X,Z
-if index == 1
-    index = index + 1; % adjusting to remove indexing errors.
-end
-plot(X_cmd((index-1):ss:(endi-1)),Z_cmd((index-1):ss:(endi-1)),'r+','LineWidth',1.5); %commands data X,Z
+plot(X_cmd((index):ss:(endi)),Z_cmd((index):ss:(endi)),'r+','LineWidth',1.5); %commands data X,Z
 %plot(hummTraj(:,2),hummTraj(:,3)+1,'c*','LineWidth',1.5); %actual hummingbird data (adds one to the Z coordinate to match sim height)
 ax.DataAspectRatio = [1 1 1]; %equalizes scale on xy axis
 grid on;
@@ -128,11 +127,11 @@ grid on;
 %trim data
 numVectors = 5;
 splice = round(linspace(index,endi,numVectors)); %evenly spaces velocity vects throught
-theta = theta(splice);
-Thrust = Thrust(splice);
+theta1 = theta(splice);
+Thrust1 = Thrust(splice);
 for numVectors = 1:5
-    a = Thrust(numVectors)*cos(theta(numVectors));
-    b = Thrust(numVectors)*sin(theta(numVectors));
+    a = Thrust1(numVectors)*cos(theta1(numVectors));
+    b = Thrust1(numVectors)*sin(theta1(numVectors));
     quiver(X(splice(numVectors)),Z(splice(numVectors)),b,a,0,'g','LineWidth',2); %displays vector
 end
 
@@ -145,8 +144,8 @@ yl = ylabel('Z (m)','FontSize',16);
 
 %% Error Calculations
 
-xerr = X(index:endi)-X_cmd((index-1):(endi-1)); %errors in X over entire path
-zerr = Z(index:endi)-Z_cmd((index-1):(endi-1)); %errors in Z over entire path
+xerr = X(index:endi)-X_cmd((index):(endi)); %errors in X over entire path
+zerr = Z(index:endi)-Z_cmd((index):(endi)); %errors in Z over entire path
 err_2D = sqrt(xerr.^2+zerr.^2); %2D distance errors over the entire path
 avgerr_2D = mean(err_2D);
 stderr_2D = std(err_2D); %std deviation of errors
