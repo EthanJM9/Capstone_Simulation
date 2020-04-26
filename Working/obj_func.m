@@ -13,14 +13,14 @@ function f = obj_func(gains)
     
     % SETTING SIM PARAMETERS FROM DECISION VARIABLES
     in = Simulink.SimulationInput(mdl);
-    in = in.setVariable('Kp_x',gains(1)); %variables are set in the global workspace
-    in = in.setVariable('Kd_x',gains(2));
-    in = in.setVariable('Kp_theta',gains(3));
-    in = in.setVariable('Ki_theta',gains(4));
-    in = in.setVariable('Kd_theta',gains(5));
-    in = in.setVariable('Kp_alt',gains(6));
-    in = in.setVariable('Ki_alt',gains(7));
-    in = in.setVariable('Kd_alt',gains(8));
+%     in = in.setVariable('Kp_x',gains(1)); %variables are set in the global workspace
+%     in = in.setVariable('Kd_x',gains(2));
+%     in = in.setVariable('Kp_theta',gains(3));
+%     in = in.setVariable('Ki_theta',gains(4));
+%     in = in.setVariable('Kd_theta',gains(5));
+    in = in.setVariable('Kp_alt',gains(1));
+    in = in.setVariable('Ki_alt',gains(2));
+    in = in.setVariable('Kd_alt',gains(3));
 
     % Run Simulation
     simOut = sim(in); % Runs simulation using SimulationInput params

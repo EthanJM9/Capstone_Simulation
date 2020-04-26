@@ -30,14 +30,24 @@ att_lim = 45;
 
 %% Prepare Optimization
 % define initial gains vector
-gains0 = [0.32, 0.1, 2.0, 1.1, 1.2, 2.0, 1.1, 3.3]; %Kp_x, Kd_x, Kp_theta, Ki_theta, Kd_theta, Kp_alt, Ki_alt, Kd_alt
-lb = zeros(1,8);
-ub = ones(1,8).*35; %upper bound at gains of 35
+% 0.32, 0.1, 2.0, 1.1, 1.2,
+gains0 = [6.0, 1.1, 3.3]; %Kp_x, Kd_x, Kp_theta, Ki_theta, Kd_theta, Kp_alt, Ki_alt, Kd_alt
+
+% These parameters effect X position control
+Kp_x = 6; % original value 0.32
+Kd_x = 0.1; % original value 0.1
+% These parameters effect theta control
+Kp_theta = 6; % original value 2
+Ki_theta = 1.1; % original value 1.1
+Kd_theta = 3; % original value 1.2
+
+lb = zeros(1,3);
+ub = ones(1,3).*35; %upper bound at gains of 35
      
 %%
 % setting optimization parameters
 options = optimoptions(@fmincon,...
-    'Display','iter','Algorithm','sqp');
+    'Display','iter','Algorithm','sqp','DiffMinChange',0.1);
 
 % reports gains (vector containing control gains), and the value returned by function
 [gains,fval] = fmincon(@obj_func,gains0,...  % objective function input, and initial point
