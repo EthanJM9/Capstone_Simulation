@@ -5,9 +5,14 @@
 %  control solution.
 %
 %  --Ensure all necessary files are in the appropriate folder.
+%  --This script runs many unnecessary iterations of the simulation (it
+%    runs the errors for when no gains are changed 8 times, one for each
+%    gain). You can increase the speed threefold by auto-filling ErrorData
+%    and skipping over these extra simulation runs (but you have to
+%    implement the code for it, as it isn't implemented here).
 %  
 % written by Ethan Marcello
-% last updated 24APR2020
+% last updated 26APR2020
 
 
 %% Create outer loop to iterate over each path speed
@@ -43,9 +48,9 @@ for speed_red = [1 5 10 20]
         for testi=1:3
             switch testi
                 case 1
-                    mult_fact = 1;
-                case 2
                     mult_fact = 0.95;
+                case 2
+                    mult_fact = 1.0;
                 case 3
                     mult_fact = 1.05;
             end
@@ -139,11 +144,11 @@ for speed_red = [1 5 10 20]
             fprintf("Third trajectory iteration complete\n");
         case 20
             ErrorData.sr20x = error_data;
-            fprintf("Last trajectory iteration complete\nError data saved in structure 'ErrorData'");
+            fprintf("Last trajectory iteration complete\nError data saved in structure 'ErrorData'\n");
     end %end of switch
     
 end % For each trajectory path 1,5,10,20
 
-ErrorData.readme = "Rows are avg, std, and max error values. Each column is one trial. Each 3 columns is one gain manipulation in the order of base, 5% decrease, 5% increase";
-
+ErrorData.readme = "Rows are avg, std, and max error values. Each column is one trial. Each 3 columns is one gain manipulation in the order of 5% decrease, base, 5% increase";
+save('Error_Figures/ErrorData.mat', 'ErrorData');
 
