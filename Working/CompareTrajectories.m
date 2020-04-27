@@ -49,6 +49,8 @@ end
 
 %% Control Parameters
 
+gains_i = [6, 0.1, 6, 1.1, 3, 6, 1.1, 3.3];
+
 % These parameters effect X position control
 Kp_x = 6; % original value 0.32
 Kd_x = 0.1; % original value 0.1
@@ -117,8 +119,8 @@ end
 hold on;
 % The commanded position at each timestep should be identical to the actual
 % position in a perfect-control scenario.
-plot(X(index:ss:endi),Z(index:ss:endi),'bo','LineWidth',1.5); %state data X,Z
-plot(X_cmd((index):ss:(endi)),Z_cmd((index):ss:(endi)),'r+','LineWidth',1.5); %commands data X,Z
+plot(X([index:ss:endi endi]),Z([index:ss:endi endi]),'bo','LineWidth',1.5); %state data X,Z
+plot(X_cmd([(index):ss:(endi), endi]),Z_cmd([(index):ss:(endi), endi]),'r+','LineWidth',1.5); %commands data X,Z
 %plot(hummTraj(:,2),hummTraj(:,3)+1,'c*','LineWidth',1.5); %actual hummingbird data (adds one to the Z coordinate to match sim height)
 ax.DataAspectRatio = [1 1 1]; %equalizes scale on xy axis
 grid on;
@@ -126,16 +128,35 @@ grid on;
 %Add thrust vectors using "quiver" function
 %trim data
 numVectors = 5;
+plotvect = index:ss:endi;
+shift = endi - plotvect(1,end);
 splice = round(linspace(index,endi,numVectors)); %evenly spaces velocity vects throught
+%fancy shit to get the vectors to properly line up on the plotted sample points
+%necessary because linspace includes the endpoint, but the colon operator I
+%used for the plots doesn't include the endpoint so things don't line up
+%correctly.
+for num = 1:numVectors
+    if num == 1 || num == numVectors
+        % literally do nothing, these are already aligned.
+    else
+        while (mod(splice(num),ss) ~= (ss-shift))
+            splice(num) = splice(num) + 1; % slide index up to next data point.
+            if splice(num) > endi
+                splice(num) = endi;
+                break;
+            end
+        end
+    end
+end
 theta1 = theta(splice);
 Thrust1 = Thrust(splice);
-for numVectors = 1:5
-    a = Thrust1(numVectors)*cos(theta1(numVectors));
-    b = Thrust1(numVectors)*sin(theta1(numVectors));
-    quiver(X(splice(numVectors)),Z(splice(numVectors)),b,a,0,'g','LineWidth',2); %displays vector
+for vectors = 1:numVectors
+    a = Thrust1(vectors)*cos(theta1(vectors));
+    b = Thrust1(vectors)*sin(theta1(vectors));
+    quiver(X(splice(vectors)),Z(splice(vectors)),b,a,0,'g','LineWidth',2); %displays vector
 end
 
-tit = title(path.name,'FontSize',20);
+tit = title({path.name,"Improved Control"},'FontSize',20);
 %NOTE: Thrust vectors are only proportional to thrust, and they are evenly
 %spaced throughout the displayed dataset.
 leg = legend('Path Flown','Path Commanded','Thrust Vector','FontSize',16);
@@ -151,8 +172,8 @@ avgerr_2D = mean(err_2D);
 stderr_2D = std(err_2D); %std deviation of errors
 maxerr_2D = max(err_2D);
 % Set up data structure for saving
-data = [xerr; zerr; err_2D];
-%save("Error_Figures/ErrorData_"+extractAfter(trajectory_path,"slow"), "data", "avgerr_2D", "stderr_2D", "maxerr_2D");
+errdata = [xerr, zerr, err_2D];
+save("Error_Figures/icErrorData_"+extractAfter(trajectory_path,"slow"), "errdata", "avgerr_2D", "stderr_2D", "maxerr_2D");
 
 %% Plot Error Graph(s)
 
@@ -166,7 +187,7 @@ hold on;
 plot(traj_time, xerr, 'LineWidth', 1.5);
 plot(traj_time, zerr, 'LineWidth', 1.5);
 plot(traj_time, err_2D, 'LineWidth', 1.5);
-title('Position Errors at' + extractAfter(path.name,'ory'), 'FontSize', 20);
+title({'Position Errors at' + extractAfter(path.name,'ory'),'Improved Control'}, 'FontSize', 20);
 legend('Error in X', 'Error in Z', 'Total 2D Distance Error','FontSize',12);
 tl = xlabel('Time (s)','FontSize',16);
 zl = ylabel('Error (m)','FontSize',16);
